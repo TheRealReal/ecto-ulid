@@ -7,7 +7,11 @@ defmodule Ecto.ULID.Mixfile do
       version: "0.1.0",
       elixir: "~> 1.2",
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+      name: "Ecto.ULID",
+      source_url: "https://github.com/TheRealReal/ecto-ulid",
+      homepage_url: "https://github.com/TheRealReal/ecto-ulid",
+      docs: [main: "Ecto.ULID"],
     ]
   end
 
@@ -21,6 +25,7 @@ defmodule Ecto.ULID.Mixfile do
     [
       {:ecto, "~> 2.0"},
       {:benchfella, "~> 0.3.5", only: [:dev, :test]},
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false},
     ]
   end
 end

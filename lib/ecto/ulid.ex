@@ -1,8 +1,18 @@
 defmodule Ecto.ULID do
+  @moduledoc """
+  An Ecto type for ULID strings.
+  """
+
   @behaviour Ecto.Type
 
+  @doc """
+  The underlying schema type.
+  """
   def type, do: :uuid
 
+  @doc """
+  Casts a string to ULID.
+  """
   def cast(<<_::bytes-size(26)>> = value) do
     if valid?(value) do
       {:ok, value}
@@ -12,6 +22,9 @@ defmodule Ecto.ULID do
   end
   def cast(_), do: :error
 
+  @doc """
+  Same as `cast/1` but raises `Ecto.CastError` on invalid arguments.
+  """
   def cast!(value) do
     case cast(value) do
       {:ok, ulid} -> ulid
@@ -19,19 +32,46 @@ defmodule Ecto.ULID do
     end
   end
 
+  @doc """
+  Converts a Crockford Base32 encoded ULID into a binary.
+  """
   def dump(<<_::bytes-size(26)>> = encoded), do: decode(encoded)
   def dump(_), do: :error
 
+  @doc """
+  Converts a binary ULID into a Crockford Base32 encoded string.
+  """
   def load(<<_::unsigned-size(128)>> = bytes), do: encode(bytes)
   def load(_), do: :error
 
+  @doc false
   def autogenerate, do: generate()
 
+  @doc """
+  Generates a Crockford Base32 encoded ULID.
+
+  If a value is provided for `timestamp`, the generated ULID will be for the provided timestamp.
+  Otherwise, a ULID will be generated for the current time.
+
+  Arguments:
+
+  * `timestamp`: A Unix timestamp with millisecond precision.
+  """
   def generate(timestamp \\ System.system_time(:milli_seconds)) do
     {:ok, ulid} = encode(bingenerate(timestamp))
     ulid
   end
 
+  @doc """
+  Generates a binary ULID.
+
+  If a value is provided for `timestamp`, the generated ULID will be for the provided timestamp.
+  Otherwise, a ULID will be generated for the current time.
+
+  Arguments:
+
+  * `timestamp`: A Unix timestamp with millisecond precision.
+  """
   def bingenerate(timestamp \\ System.system_time(:milli_seconds)) do
     <<timestamp::unsigned-size(48), :crypto.strong_rand_bytes(10)::binary>>
   end
