@@ -19,6 +19,7 @@ defmodule Ecto.ULID.Mixfile do
 
   defp deps do
     [
+      {:ecto, "~> 2.0"},
     ]
   end
 end
