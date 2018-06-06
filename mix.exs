@@ -9,6 +9,8 @@ defmodule Ecto.ULID.Mixfile do
       start_permanent: Mix.env == :prod,
       deps: deps(),
       name: "Ecto.ULID",
+      description: "An Ecto.Type implementation of ULID.",
+      package: package(),
       source_url: "https://github.com/TheRealReal/ecto-ulid",
       homepage_url: "https://github.com/TheRealReal/ecto-ulid",
       docs: [main: "Ecto.ULID"],
@@ -18,6 +20,14 @@ defmodule Ecto.ULID.Mixfile do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["David Cuddeback"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/TheRealReal/ecto-ulid"},
     ]
   end
 
