@@ -33,7 +33,7 @@ defmodule Ecto.ULID.Mixfile do
 
   defp deps do
     [
-      {:ecto, "~> 2.0"},
+      {:ecto, "~> 2.0 or ~> 3.0"},
       {:benchfella, "~> 0.3.5", only: [:dev, :test]},
       {:ex_doc, "~> 0.16", only: :dev, runtime: false},
     ]
