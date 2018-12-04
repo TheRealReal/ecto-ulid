@@ -2,7 +2,7 @@
 
 ## 0.1.1 (2018-12-03)
 ### Added
-* [https://github.com/TheRealReal/ecto-ulid/pull/2](#2)
+* ([#2](https://github.com/TheRealReal/ecto-ulid/pull/2))
   Add support for Ecto 3.x.
 
 ## 0.1.0 (2018-06-06)
