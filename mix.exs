@@ -4,7 +4,7 @@ defmodule Ecto.ULID.Mixfile do
   def project do
     [
       app: :ecto_ulid,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.2",
       start_permanent: Mix.env == :prod,
       deps: deps(),
