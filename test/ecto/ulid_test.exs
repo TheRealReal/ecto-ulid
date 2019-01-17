@@ -23,7 +23,7 @@ defmodule Ecto.ULIDTest do
   # bingenerate/0
 
   test "bingenerate/0 encodes milliseconds in first 48 bits" do
-    now = System.system_time(:milli_seconds)
+    now = System.system_time(:millisecond)
     <<time::48, _random::80>> = Ecto.ULID.bingenerate()
 
     assert_in_delta now, time, 10

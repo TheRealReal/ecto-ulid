@@ -17,7 +17,7 @@ binary-compatible with UUID, so it can be stored in a `uuid` column in a databas
 * Supports reading and writing ULID in a database backed by its native `uuid` type (no database
   extensions required).
 * Supports Ecto 2.x and Ecto 3.x.
-* Supports Elixir 1.2 and newer.
+* Supports Elixir 1.4 and newer.
 * Confirmed working on PostgreSQL and MySQL.
 * Optimized for high throughput.
 
