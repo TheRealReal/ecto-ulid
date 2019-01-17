@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.2.0 (2019-01-17)
+### Breaking Changes
+* Minimum supported Elixir is now 1.4.
+
+### Changed
+* ([#3](https://github.com/TheRealReal/ecto-ulid/pull/3))
+  Fix deprecation warnings regarding time units.
+
 ## 0.1.1 (2018-12-03)
 ### Added
 * ([#2](https://github.com/TheRealReal/ecto-ulid/pull/2))
