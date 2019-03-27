@@ -72,6 +72,20 @@ create table(:events, primary_key: false) do
 end
 ```
 
+You can also set the `migration_primary_key` when configuring your `Repo`:
+
+```elixir
+config :my_app, MyApp.Repo, migration_primary_key: [name: :id, type: :binary_id]
+```
+
+and then you *do not* need to specify the `id` column in your migrations:
+
+```elixir
+create table(:events) do
+  # more columns ...
+end
+```
+
 ### Schema
 
 When defining a model's schema, use `Ecto.ULID` as the `@primary_key`:
@@ -81,6 +95,7 @@ defmodule MyApp.Event do
   use Ecto.Schema
 
   @primary_key {:id, Ecto.ULID, autogenerate: false}
+  @foreign_key_type Ecto.ULID
   schema "events" do
     # more columns ...
   end
