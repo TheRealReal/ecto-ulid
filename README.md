@@ -2,9 +2,8 @@
 
 An `Ecto.Type` implementation of [ULID](https://github.com/ulid/spec).
 
-`Ecto.ULID` should be compatible anywhere that `Ecto.UUID` is supported.
-It has been confirmed to work with PostgreSQL and MySQL on Ecto 2.x.
-Ecto 1.x is *not* supported.
+`Ecto.ULID` should be compatible anywhere that `Ecto.UUID` is supported. It has been confirmed to
+work with PostgreSQL and MySQL on Ecto 2.x and 3.x.  Ecto 1.x is *not* supported.
 
 ULID is a 128-bit universally unique lexicographically sortable identifier. ULID is
 binary-compatible with UUID, so it can be stored in a `uuid` column in a database.
