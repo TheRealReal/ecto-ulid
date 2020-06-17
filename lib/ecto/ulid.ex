@@ -5,6 +5,11 @@ defmodule Ecto.ULID do
 
   @behaviour Ecto.Type
 
+  @typedoc """
+  A hex-encoded ULID string.
+  """
+  @type t :: <<_::208>>
+
   @doc """
   The underlying schema type.
   """
