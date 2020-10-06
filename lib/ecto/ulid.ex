@@ -3,7 +3,7 @@ defmodule Ecto.ULID do
   An Ecto type for ULID strings.
   """
 
-  @behaviour Ecto.Type
+  use Ecto.Type
 
   @typedoc """
   A hex-encoded ULID string.
