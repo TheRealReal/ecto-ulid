@@ -76,6 +76,18 @@ defmodule Ecto.ULID do
     <<timestamp::unsigned-size(48), :crypto.strong_rand_bytes(10)::binary>>
   end
 
+  @doc """
+  Dictates how the type should be treated inside embeds.
+  By default, the type is sent as itself. Instead of sending it as 26 bytes,
+  it's being dumped to a string representation which is more useful in embeded schemas.
+  """
+  def embed_as(_), do: :dump
+
+  @doc """
+  Checks if two terms are equal.
+  """
+  def equal?(term1, term2), do: term1 == term2
+
   defp encode(<< b1::3,  b2::5,  b3::5,  b4::5,  b5::5,  b6::5,  b7::5,  b8::5,  b9::5, b10::5, b11::5, b12::5, b13::5,
                 b14::5, b15::5, b16::5, b17::5, b18::5, b19::5, b20::5, b21::5, b22::5, b23::5, b24::5, b25::5, b26::5>>) do
     <<e(b1), e(b2), e(b3), e(b4), e(b5), e(b6), e(b7), e(b8), e(b9), e(b10), e(b11), e(b12), e(b13),
