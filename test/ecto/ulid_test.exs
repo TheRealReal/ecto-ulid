@@ -8,7 +8,7 @@ defmodule Ecto.ULIDTest do
 
   test "generate/0 encodes milliseconds in first 10 characters" do
     # test case from ULID README: https://github.com/ulid/javascript#seed-time
-    <<encoded::bytes-size(10), _rest::bytes-size(16)>> = Ecto.ULID.generate(1469918176385)
+    <<encoded::bytes-size(10), _rest::bytes-size(16)>> = Ecto.ULID.generate(1_469_918_176_385)
 
     assert encoded == "01ARYZ6S41"
   end
