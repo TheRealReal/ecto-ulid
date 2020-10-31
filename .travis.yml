@@ -6,7 +6,7 @@ cache:
 matrix:
   include:
     - elixir: 1.11.1
-      otp_release: 23.1
+      otp_release: 23.0
       env: MIX_EXS=ci/mix-ecto-3.5.exs
     - elixir: 1.8.0
       otp_release: 21.2
