@@ -11,8 +11,8 @@ defmodule Ecto.ULID.Mixfile do
       name: "Ecto.ULID",
       description: "An Ecto.Type implementation of ULID.",
       package: package(),
-      source_url: "https://github.com/TheRealReal/ecto-ulid",
-      homepage_url: "https://github.com/TheRealReal/ecto-ulid",
+      source_url: "https://github.com/woylie/ecto-ulid",
+      homepage_url: "https://github.com/woylie/ecto-ulid",
       docs: [main: "Ecto.ULID"]
     ]
   end
@@ -27,7 +27,7 @@ defmodule Ecto.ULID.Mixfile do
     [
       maintainers: ["David Cuddeback"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/TheRealReal/ecto-ulid"}
+      links: %{"GitHub" => "https://github.com/woylie/ecto-ulid"}
     ]
   end
 
