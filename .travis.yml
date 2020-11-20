@@ -5,11 +5,20 @@ cache:
     - _build
 matrix:
   include:
-    - elixir: 1.8.0
-      otp_release: 21.2
+    - elixir: 1.11.2
+      otp_release: 23.0
+      env: MIX_EXS=ci/mix-ecto-3.0.exs
+    - elixir: 1.10.4
+      otp_release: 22.3
+      env: MIX_EXS=ci/mix-ecto-3.0.exs
+    - elixir: 1.9.4
+      otp_release: 22.3
+      env: MIX_EXS=ci/mix-ecto-3.0.exs
+    - elixir: 1.8.2
+      otp_release: 22.3
       env: MIX_EXS=ci/mix-ecto-3.0.exs
     - elixir: 1.7.4
-      otp_release: 21.0
+      otp_release: 22.3
       env: MIX_EXS=ci/mix-ecto-3.0.exs
     - elixir: 1.6.6
       otp_release: 20.3
