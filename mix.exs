@@ -13,7 +13,10 @@ defmodule Ecto.ULID.Mixfile do
       package: package(),
       source_url: "https://github.com/woylie/ecto-ulid",
       homepage_url: "https://github.com/woylie/ecto-ulid",
-      docs: [main: "Ecto.ULID"]
+      docs: [
+        main: "readme",
+        extras: ["README.md"]
+      ]
     ]
   end
 
