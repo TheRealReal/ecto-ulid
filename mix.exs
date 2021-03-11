@@ -28,7 +28,7 @@ defmodule Ecto.ULID.Mixfile do
 
   defp package do
     [
-      maintainers: ["David Cuddeback"],
+      maintainers: ["Mathias Polligkeit"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/woylie/ecto-ulid"}
     ]
