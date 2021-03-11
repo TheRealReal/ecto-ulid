@@ -3,7 +3,11 @@ defmodule Ecto.ULID do
   An Ecto type for ULID strings.
   """
 
+  # replace with `use Ecto.Type` after Ecto 3.2.0 is required
   @behaviour Ecto.Type
+  # and remove both of these functions
+  def embed_as(_), do: :self
+  def equal?(term1, term2), do: term1 == term2
 
   @doc """
   The underlying schema type.
