@@ -30,19 +30,8 @@ Since one use case of ULID is to handle a large volume of events, `Ecto.ULID` is
 fast as possible. It borrows techniques from `Ecto.UUID` to achieve sub-microsecond times for most
 operations.
 
-A benchmark suite is included. Download the repository and run `mix bench` to test the performance
+A benchmark suite is included. Download the repository and run `mix run bench/ulid_bench.exs` to test the performance
 on your system.
-
-The following are results from running the benchmark on an AMD Ryzen Threadripper 1950X:
-
-```
-benchmark name iterations   average time
-cast/1           10000000   0.25 µs/op
-dump/1           10000000   0.50 µs/op
-load/1           10000000   0.55 µs/op
-bingenerate/0    10000000   0.93 µs/op
-generate/0        1000000   1.55 µs/op
-```
 
 ## Usage
 
