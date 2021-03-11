@@ -1,0 +1,40 @@
+name: Elixir CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}} / Ecto ${{matrix.ecto}}
+    strategy:
+      matrix:
+        otp: ["21.3", "22.3"]
+        elixir: ["1.7.4", "1.8.0", "1.11.3"]
+        ecto: ["3.2", "3.5"]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      MIX_EXS: ci/mix-ecto-${{ matrix.ecto }}.exs
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Elixir
+        uses: erlef/setup-elixir@885971a72ed1f9240973bd92ab57af8c1aa68f24
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - name: Restore dependencies cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Run Linter
+        run: mix credo
+      - name: Run tests
+        run: mix test
