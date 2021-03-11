@@ -28,7 +28,7 @@ defmodule Ecto.ULID.Mixfile do
 
   defp package do
     [
-      maintainers: ["David Cuddeback"],
+      maintainers: ["Mathias Polligkeit"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/woylie/ecto-ulid"}
     ]
@@ -36,6 +36,7 @@ defmodule Ecto.ULID.Mixfile do
 
   defp deps do
     [
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.2"},
       {:benchfella, "~> 0.3.5", only: [:dev, :test]},
       {:ex_doc, "~> 0.16", only: :dev, runtime: false}
