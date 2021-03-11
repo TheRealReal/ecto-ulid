@@ -1,14 +1,16 @@
 defmodule Ecto.ULIDTest do
   use ExUnit.Case, async: true
 
-  @binary <<1, 95, 194, 60, 108, 73, 209, 114, 136, 236, 133, 115, 106, 195, 145, 22>>
+  @binary <<1, 95, 194, 60, 108, 73, 209, 114, 136, 236, 133, 115, 106, 195,
+            145, 22>>
   @encoded "01BZ13RV29T5S8HV45EDNC748P"
 
   # generate/0
 
   test "generate/0 encodes milliseconds in first 10 characters" do
     # test case from ULID README: https://github.com/ulid/javascript#seed-time
-    <<encoded::bytes-size(10), _rest::bytes-size(16)>> = Ecto.ULID.generate(1_469_918_176_385)
+    <<encoded::bytes-size(10), _rest::bytes-size(16)>> =
+      Ecto.ULID.generate(1_469_918_176_385)
 
     assert encoded == "01ARYZ6S41"
   end
@@ -124,15 +126,19 @@ defmodule Ecto.ULIDTest do
   end
 
   test "load/1 encodes binary of correct length" do
-    {:ok, encoded} = Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>)
+    {:ok, encoded} =
+      Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>)
+
     assert encoded == "00000000000000000000000000"
   end
 
   test "load/1 returns error when data is too short" do
-    assert Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>) == :error
+    assert Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>) ==
+             :error
   end
 
   test "load/1 returns error when data is too long" do
-    assert Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>) == :error
+    assert Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>) ==
+             :error
   end
 end
