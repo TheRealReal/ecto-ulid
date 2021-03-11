@@ -19,7 +19,6 @@ defmodule Ecto.ULID.Mixfile do
 
   defp deps do
     [
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.5.0"}
     ]
   end
