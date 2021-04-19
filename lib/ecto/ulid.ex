@@ -9,6 +9,11 @@ defmodule Ecto.ULID do
   def embed_as(_), do: :self
   def equal?(term1, term2), do: term1 == term2
 
+  @typedoc """
+  A hex-encoded ULID string.
+  """
+  @type t :: <<_::208>>
+
   @doc """
   The underlying schema type.
   """
