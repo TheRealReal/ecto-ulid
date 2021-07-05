@@ -1,5 +1,11 @@
 # Ecto.ULID
 
+[![Module Version](https://img.shields.io/hexpm/v/ecto_ulid.svg)](https://hex.pm/packages/ecto_ulid)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/ecto_ulid/)
+[![Total Download](https://img.shields.io/hexpm/dt/ecto_ulid.svg)](https://hex.pm/packages/ecto_ulid)
+[![License](https://img.shields.io/hexpm/l/ecto_ulid.svg)](https://github.com/TheRealReal/ecto-ulid/blob/master/LICENSE.md)
+[![Last Updated](https://img.shields.io/github/last-commit/TheRealReal/ecto-ulid.svg)](https://github.com/TheRealReal/ecto-ulid/commits/master)
+
 An `Ecto.Type` implementation of [ULID](https://github.com/ulid/spec).
 
 `Ecto.ULID` should be compatible anywhere that `Ecto.UUID` is supported. It has been confirmed to
@@ -32,6 +38,8 @@ on your system.
 The following are results from running the benchmark on an AMD Ryzen Threadripper 1950X:
 
 ```
+mix bench
+...
 benchmark name iterations   average time
 cast/1           10000000   0.25 µs/op
 dump/1           10000000   0.50 µs/op
@@ -49,7 +57,7 @@ primary key in a database table, but it can be used for other columns just as ea
 
 ### Install
 
-Install `ecto_ulid` from Hex by adding it to the dependencies in `mix.exs`:
+Install `:ecto_ulid` from Hex by adding it to the dependencies in `mix.exs`:
 
 ```elixir
 defp deps do
@@ -119,8 +127,9 @@ Ecto.ULID.bingenerate() #=> <<1, 95, 194, 60, 108, 73, 209, 114, 136, 236, 133, 
 To backfill old data, it may be helpful to pass a timestamp to `generate/1` or `bingenerate/1`. See
 the [API documentation](https://hexdocs.pm/ecto_ulid) for more details.
 
-## License
+## Copyright and License
 
-Copyright © 2018 The RealReal, Inc.
+Copyright (c) 2018 The RealReal, Inc.
 
-Distributed under the [MIT License](./LICENSE).
+This library is released under the MIT License. See the [LICENSE.md](./LICENSE.md) file
+for further details.
