@@ -135,4 +135,43 @@ defmodule Ecto.ULIDTest do
   test "load/1 returns error when data is too long" do
     assert Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>) == :error
   end
+
+  test "embed_as/1 returns :dump" do
+    ulid = Ecto.ULID.bingenerate()
+    assert Ecto.ULID.embed_as(ulid) == :dump
+  end
+
+  test "embedded_dump dumps ULID as binary from schema" do
+    ulid = Ecto.ULID.generate()
+    {:ok, decoded} = Ecto.ULID.dump(ulid)
+    assert Ecto.Type.embedded_dump(Ecto.ULID, ulid, :any_format) == {:ok, decoded}
+  end
+
+  test "embedded_load loads ULID as string to embeded schema" do
+    ulid = Ecto.ULID.bingenerate()
+    {:ok, encoded} = Ecto.ULID.load(ulid)
+    assert Ecto.Type.embedded_load(Ecto.ULID, ulid, :any_format) == {:ok, encoded}
+  end
+
+  test "equal?/1 compares correctly two equal string ULIDs" do
+    ulid = Ecto.ULID.generate()
+    assert Ecto.ULID.equal?(ulid, ulid) == true
+  end
+
+  test "equal?/1 compares correctly two different string ULIDs" do
+    ulid1 = Ecto.ULID.generate()
+    ulid2 = Ecto.ULID.generate()
+    assert Ecto.ULID.equal?(ulid1, ulid2) == false
+  end
+
+  test "equal?/1 compares correctly two equal binary ULIDs" do
+    ulid = Ecto.ULID.bingenerate()
+    assert Ecto.ULID.equal?(ulid, ulid) == true
+  end
+
+  test "equal?/1 compares correctly two different binary ULIDs" do
+    ulid1 = Ecto.ULID.bingenerate()
+    ulid2 = Ecto.ULID.bingenerate()
+    assert Ecto.ULID.equal?(ulid1, ulid2) == false
+  end
 end
