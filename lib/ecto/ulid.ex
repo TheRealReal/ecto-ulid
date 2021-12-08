@@ -3,71 +3,140 @@ defmodule Ecto.ULID do
   An Ecto type for ULID strings.
   """
 
-  # replace with `use Ecto.Type` after Ecto 3.2.0 is required
-  @behaviour Ecto.Type
+  @default_params %{variant: :b32}
+
+  # replace with `use Ecto.ParameterizedType` after Ecto 3.2.0 is required
+  @behaviour Ecto.ParameterizedType
   # and remove both of these functions
-  def embed_as(_), do: :self
-  def equal?(term1, term2), do: term1 == term2
+  def embed_as(_, _params), do: :self
+  def equal?(term1, term2, _params), do: dump(term1) == dump(term2)
 
   @doc """
   The underlying schema type.
   """
-  def type, do: :uuid
+  def type(_params \\ @default_params), do: :uuid
 
   @doc """
   Casts a string to ULID.
   """
-  def cast(<<_::bytes-size(26)>> = value) do
+  def cast(value, params \\ @default_params)
+  def cast(<<_::bytes-size(26)>> = value, _params) do
+    # Crockford Base32 encoded string
     if valid?(value) do
       {:ok, value}
     else
       :error
     end
   end
-  def cast(_), do: :error
+  def cast(<<_::bytes-size(22)>> = value, _params) do
+    # Lexicographic Base64 encoded string
+    if valid64?(value) do
+      {:ok, value}
+    else
+      :error
+    end
+  end
+  def cast(<<_::bytes-size(20)>> = value, _params) do
+    # Firebase-Push-Key Base64 encoded string
+    if valid64?(value) do
+      {:ok, value}
+    else
+      :error
+    end
+  end
+  def cast(_, _params), do: :error
 
   @doc """
-  Same as `cast/1` but raises `Ecto.CastError` on invalid arguments.
+  Same as `cast/2` but raises `Ecto.CastError` on invalid arguments.
   """
-  def cast!(value) do
-    case cast(value) do
+  def cast!(value, params \\ @default_params) do
+    case cast(value, params) do
       {:ok, ulid} -> ulid
       :error -> raise Ecto.CastError, type: __MODULE__, value: value
     end
   end
 
   @doc """
-  Converts a Crockford Base32 encoded ULID into a binary.
+  Converts a Crockford Base32 encoded string or
+  Lexicographic Base64 encoded string or Firebase-Push-Key Base64 encoded string
+  into a binary ULID.
   """
+  def dump(encoded)
   def dump(<<_::bytes-size(26)>> = encoded), do: decode(encoded)
+  def dump(<<_::bytes-size(22)>> = encoded), do: decode64(encoded)
+  def dump(<<_::bytes-size(20)>> = encoded), do: decode64(encoded)
   def dump(_), do: :error
 
-  @doc """
-  Converts a binary ULID into a Crockford Base32 encoded string.
-  """
-  def load(<<_::unsigned-size(128)>> = bytes), do: encode(bytes)
-  def load(_), do: :error
+  @doc false
+  def dump(encoded, _dumper, _params), do: dump(encoded)
 
   @doc """
-  Converts a binary ULID into a Firebase Base64 encoded string.
+  Converts a binary ULID into an encoded string (defaults to Crockford Base32 encoding).
+
+  Variants:
+
+  * `:b32`: Crockford Base32 encoding (default)
+  * `:b64`: Lexicographic Base64 encoding
+  * `:push`: Firebase Push-Key Base64 encoding
+
+  Arguments:
+
+  * `bytes`: A binary ULID.
+  * `variant`: :b32 (default), :b64 (Base64), or :push (Firebase Push-Key).
   """
-  def load64(<<_::unsigned-size(128)>> = bytes), do: encode64(bytes)
-  def load64(_), do: :error
+  def load(bytes, variant \\ :b32)
+  def load(<<_::unsigned-size(128)>> = bytes, :b32), do: encode(bytes)
+  def load(<<_::unsigned-size(128)>> = bytes, :b64), do: encode64(bytes)
+  def load(<<ts::bits-size(48), _::bits-size(8), rand::bits-size(72)>> = _bytes, :push), do: encode64(<<ts::binary, rand::binary>>)
+  def load(_, _variant), do: :error
 
   @doc false
-  def autogenerate, do: generate()
+  def load(bytes, _loader, %{variant: variant}), do: load(bytes, variant)
+  def load(_, _loader, _params), do: :error
+
+  @doc false
+  def init(opts) do
+    case Keyword.get(opts, :variant, :b32) do
+      v when v in [:b32, :b64, :push] -> %{variant: v}
+      _ -> raise "Ecto.ULID variant must be one of [:b32, :b64, :push]"
+    end
+  end
+
+  @doc false
+  def autogenerate(%{variant: variant} = _params), do: generate(variant)
 
   @doc """
-  Generates a Crockford Base32 encoded ULID.
+  Generates a string encoded ULID (defaults to Crockford Base32 encoding).
 
   If a value is provided for `timestamp`, the generated ULID will be for the provided timestamp.
   Otherwise, a ULID will be generated for the current time.
 
+  Variants:
+
+  * `:b32`: Crockford Base32 encoding (default)
+  * `:b64`: Lexicographic Base64 encoding
+  * `:push`: Firebase Push-Key Base64 encoding
+
   Arguments:
 
+  * `variant`: :b32 (default), :b64 (Base64), or :push (Firebase Push-Key).
   * `timestamp`: A Unix timestamp with millisecond precision.
   """
-  def generate(timestamp \\ System.system_time(:millisecond)) do
+  def generate(variant \\ :b32, timestamp \\ System.system_time(:millisecond))
+  def generate(:b32, timestamp) do
+    {:ok, ulid} = encode(bingenerate(timestamp))
+    ulid
+  end
+  def generate(:b64, timestamp) do
+    {:ok, ulid} = encode64(bingenerate(timestamp))
+    ulid
+  end
+  def generate(:push, timestamp) do
+    <<ts::bits-size(48), _::bits-size(8), rand::bits-size(72)>> = bingenerate(timestamp)
+    {:ok, ulid} = encode64(<<ts::binary, rand::binary>>)
+    ulid
+  end
+  def generate(timestamp, _) when is_integer(timestamp) do
     {:ok, ulid} = encode(bingenerate(timestamp))
     ulid
   end
@@ -101,6 +170,15 @@ defmodule Ecto.ULID do
                 b14::6, b15::6, b16::6, b17::6, b18::6, b19::6, b20::6, b21::6, b22::6>>) do
     <<e64(b1), e64(b2), e64(b3), e64(b4), e64(b5), e64(b6), e64(b7), e64(b8), e64(b9), e64(b10), e64(b11), e64(b12), e64(b13),
       e64(b14), e64(b15), e64(b16), e64(b17), e64(b18), e64(b19), e64(b20), e64(b21), e64(b22)>>
+  catch
+    :error -> :error
+  else
+    encoded -> {:ok, encoded}
+  end
+  defp encode64(<< b1::6,  b2::6,  b3::6,  b4::6,  b5::6,  b6::6,  b7::6,  b8::6,  b9::6, b10::6, b11::6, b12::6, b13::6,
+                b14::6, b15::6, b16::6, b17::6, b18::6, b19::6, b20::6>>) do
+    <<e64(b1), e64(b2), e64(b3), e64(b4), e64(b5), e64(b6), e64(b7), e64(b8), e64(b9), e64(b10), e64(b11), e64(b12), e64(b13),
+      e64(b14), e64(b15), e64(b16), e64(b17), e64(b18), e64(b19), e64(b20)>>
   catch
     :error -> :error
   else
@@ -219,7 +297,27 @@ defmodule Ecto.ULID do
   end
   defp decode(_), do: :error
 
-  @compile {:inline, d: 1}
+  defp decode64(<< c1::8,  c2::8,  c3::8,  c4::8,  c5::8,  c6::8,  c7::8,  c8::8,  c9::8, c10::8, c11::8, c12::8, c13::8,
+                c14::8, c15::8, c16::8, c17::8, c18::8, c19::8, c20::8, c21::8, c22::8>>) do
+    << d64(c1)::2,  d64(c2)::6,  d64(c3)::6,  d64(c4)::6,  d64(c5)::6,  d64(c6)::6,  d64(c7)::6,  d64(c8)::6,  d64(c9)::6, d64(c10)::6, d64(c11)::6, d64(c12)::6, d64(c13)::6,
+      d64(c14)::6, d64(c15)::6, d64(c16)::6, d64(c17)::6, d64(c18)::6, d64(c19)::6, d64(c20)::6, d64(c21)::6, d64(c22)::6>>
+  catch
+    :error -> :error
+  else
+    decoded -> {:ok, decoded}
+  end
+  defp decode64(<< c1::8,  c2::8,  c3::8,  c4::8,  c5::8,  c6::8,  c7::8,  c8::8,  c9::8, c10::8, c11::8, c12::8, c13::8,
+                c14::8, c15::8, c16::8, c17::8, c18::8, c19::8, c20::8>>) do
+    << d64(c1)::6,  d64(c2)::6,  d64(c3)::6,  d64(c4)::6,  d64(c5)::6,  d64(c6)::6,  d64(c7)::6, d64(c8)::6, 0::unsigned-size(8), d64(c9)::6, d64(c10)::6, d64(c11)::6, d64(c12)::6, d64(c13)::6,
+      d64(c14)::6, d64(c15)::6, d64(c16)::6, d64(c17)::6, d64(c18)::6, d64(c19)::6, d64(c20)::6>>
+  catch
+    :error -> :error
+  else
+    decoded -> {:ok, decoded}
+  end
+  defp decode64(_), do: :error
+
+  @compile {:inline, d: 1, d64: 1}
 
   defp d(?0), do: 0
   defp d(?1), do: 1
@@ -255,14 +353,93 @@ defmodule Ecto.ULID do
   defp d(?Z), do: 31
   defp d(_), do: throw :error
 
+  defp d64(?-), do: 0
+  defp d64(?0), do: 1
+  defp d64(?1), do: 2
+  defp d64(?2), do: 3
+  defp d64(?3), do: 4
+  defp d64(?4), do: 5
+  defp d64(?5), do: 6
+  defp d64(?6), do: 7
+  defp d64(?7), do: 8
+  defp d64(?8), do: 9
+  defp d64(?9), do: 10
+  defp d64(?A), do: 11
+  defp d64(?B), do: 12
+  defp d64(?C), do: 13
+  defp d64(?D), do: 14
+  defp d64(?E), do: 15
+  defp d64(?F), do: 16
+  defp d64(?G), do: 17
+  defp d64(?H), do: 18
+  defp d64(?I), do: 19
+  defp d64(?J), do: 20
+  defp d64(?K), do: 21
+  defp d64(?L), do: 22
+  defp d64(?M), do: 23
+  defp d64(?N), do: 24
+  defp d64(?O), do: 25
+  defp d64(?P), do: 26
+  defp d64(?Q), do: 27
+  defp d64(?R), do: 28
+  defp d64(?S), do: 29
+  defp d64(?T), do: 30
+  defp d64(?U), do: 31
+  defp d64(?V), do: 32
+  defp d64(?W), do: 33
+  defp d64(?X), do: 34
+  defp d64(?Y), do: 35
+  defp d64(?Z), do: 36
+  defp d64(?_), do: 37
+  defp d64(?a), do: 38
+  defp d64(?b), do: 39
+  defp d64(?c), do: 40
+  defp d64(?d), do: 41
+  defp d64(?e), do: 42
+  defp d64(?f), do: 43
+  defp d64(?g), do: 44
+  defp d64(?h), do: 45
+  defp d64(?i), do: 46
+  defp d64(?j), do: 47
+  defp d64(?k), do: 48
+  defp d64(?l), do: 49
+  defp d64(?m), do: 50
+  defp d64(?n), do: 51
+  defp d64(?o), do: 52
+  defp d64(?p), do: 53
+  defp d64(?q), do: 54
+  defp d64(?r), do: 55
+  defp d64(?s), do: 56
+  defp d64(?t), do: 57
+  defp d64(?u), do: 58
+  defp d64(?v), do: 59
+  defp d64(?w), do: 60
+  defp d64(?x), do: 61
+  defp d64(?y), do: 62
+  defp d64(?z), do: 63
+  defp d64(_), do: throw :error
+
   defp valid?(<< c1::8,  c2::8,  c3::8,  c4::8,  c5::8,  c6::8,  c7::8,  c8::8,  c9::8, c10::8, c11::8, c12::8, c13::8,
                 c14::8, c15::8, c16::8, c17::8, c18::8, c19::8, c20::8, c21::8, c22::8, c23::8, c24::8, c25::8, c26::8>>) do
-     v(c1) &&  v(c2) &&  v(c3) &&  v(c4) &&  v(c5) &&  v(c6) &&  v(c7) &&  v(c8) &&  v(c9) && v(c10) && v(c11) && v(c12) && v(c13) &&
+     c1 in [?0, ?1, ?2, ?3, ?4, ?5, ?6, ?7] &&
+     v(c2) &&  v(c3) &&  v(c4) &&  v(c5) &&  v(c6) &&  v(c7) &&  v(c8) &&  v(c9) && v(c10) && v(c11) && v(c12) && v(c13) &&
     v(c14) && v(c15) && v(c16) && v(c17) && v(c18) && v(c19) && v(c20) && v(c21) && v(c22) && v(c23) && v(c24) && v(c25) && v(c26)
   end
   defp valid?(_), do: false
 
-  @compile {:inline, v: 1}
+  defp valid64?(<< c1::8,  c2::8,  c3::8,  c4::8,  c5::8,  c6::8,  c7::8,  c8::8,  c9::8, c10::8, c11::8, c12::8, c13::8,
+                c14::8, c15::8, c16::8, c17::8, c18::8, c19::8, c20::8, c21::8, c22::8>>) do
+     v64(c1) &&  v64(c2) &&  v64(c3) &&  v64(c4) &&  v64(c5) &&  v64(c6) &&  v64(c7) &&  v64(c8) &&  v64(c9) && v64(c10) && v64(c11) && v64(c12) && v64(c13) &&
+    v64(c14) && v64(c15) && v64(c16) && v64(c17) && v64(c18) && v64(c19) && v64(c20) && v64(c21) && v64(c22)
+  end
+  defp valid64?(<< c1::8,  c2::8,  c3::8,  c4::8,  c5::8,  c6::8,  c7::8,  c8::8,  c9::8, c10::8, c11::8, c12::8, c13::8,
+                c14::8, c15::8, c16::8, c17::8, c18::8, c19::8, c20::8>>) do
+     v64(c1) &&  v64(c2) &&  v64(c3) &&  v64(c4) &&  v64(c5) &&  v64(c6) &&  v64(c7) &&  v64(c8) &&  v64(c9) && v64(c10) && v64(c11) && v64(c12) && v64(c13) &&
+    v64(c14) && v64(c15) && v64(c16) && v64(c17) && v64(c18) && v64(c19) && v64(c20)
+  end
+  defp valid64?(_), do: false
+
+  @compile {:inline, v: 1, v64: 1}
 
   defp v(?0), do: true
   defp v(?1), do: true
@@ -297,4 +474,70 @@ defmodule Ecto.ULID do
   defp v(?Y), do: true
   defp v(?Z), do: true
   defp v(_), do: false
+
+  defp v64(?-), do: true
+  defp v64(?0), do: true
+  defp v64(?1), do: true
+  defp v64(?2), do: true
+  defp v64(?3), do: true
+  defp v64(?4), do: true
+  defp v64(?5), do: true
+  defp v64(?6), do: true
+  defp v64(?7), do: true
+  defp v64(?8), do: true
+  defp v64(?9), do: true
+  defp v64(?A), do: true
+  defp v64(?B), do: true
+  defp v64(?C), do: true
+  defp v64(?D), do: true
+  defp v64(?E), do: true
+  defp v64(?F), do: true
+  defp v64(?G), do: true
+  defp v64(?H), do: true
+  defp v64(?I), do: true
+  defp v64(?J), do: true
+  defp v64(?K), do: true
+  defp v64(?L), do: true
+  defp v64(?M), do: true
+  defp v64(?N), do: true
+  defp v64(?O), do: true
+  defp v64(?P), do: true
+  defp v64(?Q), do: true
+  defp v64(?R), do: true
+  defp v64(?S), do: true
+  defp v64(?T), do: true
+  defp v64(?U), do: true
+  defp v64(?V), do: true
+  defp v64(?W), do: true
+  defp v64(?X), do: true
+  defp v64(?Y), do: true
+  defp v64(?Z), do: true
+  defp v64(?_), do: true
+  defp v64(?a), do: true
+  defp v64(?b), do: true
+  defp v64(?c), do: true
+  defp v64(?d), do: true
+  defp v64(?e), do: true
+  defp v64(?f), do: true
+  defp v64(?g), do: true
+  defp v64(?h), do: true
+  defp v64(?i), do: true
+  defp v64(?j), do: true
+  defp v64(?k), do: true
+  defp v64(?l), do: true
+  defp v64(?m), do: true
+  defp v64(?n), do: true
+  defp v64(?o), do: true
+  defp v64(?p), do: true
+  defp v64(?q), do: true
+  defp v64(?r), do: true
+  defp v64(?s), do: true
+  defp v64(?t), do: true
+  defp v64(?u), do: true
+  defp v64(?v), do: true
+  defp v64(?w), do: true
+  defp v64(?x), do: true
+  defp v64(?y), do: true
+  defp v64(?z), do: true
+  defp v64(_), do: false
 end

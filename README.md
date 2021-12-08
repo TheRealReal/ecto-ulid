@@ -33,11 +33,11 @@ The following are results from running the benchmark on an AMD Ryzen Threadrippe
 
 ```
 benchmark name iterations   average time
-cast/1           10000000   0.25 µs/op
+cast/2           10000000   0.25 µs/op
 dump/1           10000000   0.50 µs/op
-load/1           10000000   0.55 µs/op
-bingenerate/0    10000000   0.93 µs/op
-generate/0        1000000   1.55 µs/op
+load/2           10000000   0.55 µs/op
+bingenerate/1    10000000   0.93 µs/op
+generate/2        1000000   1.55 µs/op
 ```
 
 ## Usage
@@ -108,7 +108,7 @@ key.
 
 ### Application Usage
 
-A ULID can be generated in string or binary format by calling `generate/0` or `bingenerate/0`. This
+A ULID can be generated in string or binary format by calling `generate/2` or `bingenerate/1`. This
 can be useful when generating ULIDs to send to external systems:
 
 ```elixir
