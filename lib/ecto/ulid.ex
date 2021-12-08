@@ -48,6 +48,12 @@ defmodule Ecto.ULID do
   def load(<<_::unsigned-size(128)>> = bytes), do: encode(bytes)
   def load(_), do: :error
 
+  @doc """
+  Converts a binary ULID into a Firebase Base64 encoded string.
+  """
+  def load64(<<_::unsigned-size(128)>> = bytes), do: encode64(bytes)
+  def load64(_), do: :error
+
   @doc false
   def autogenerate, do: generate()
 
@@ -91,7 +97,18 @@ defmodule Ecto.ULID do
   end
   defp encode(_), do: :error
 
-  @compile {:inline, e: 1}
+  defp encode64(<< b1::2,  b2::6,  b3::6,  b4::6,  b5::6,  b6::6,  b7::6,  b8::6,  b9::6, b10::6, b11::6, b12::6, b13::6,
+                b14::6, b15::6, b16::6, b17::6, b18::6, b19::6, b20::6, b21::6, b22::6>>) do
+    <<e64(b1), e64(b2), e64(b3), e64(b4), e64(b5), e64(b6), e64(b7), e64(b8), e64(b9), e64(b10), e64(b11), e64(b12), e64(b13),
+      e64(b14), e64(b15), e64(b16), e64(b17), e64(b18), e64(b19), e64(b20), e64(b21), e64(b22)>>
+  catch
+    :error -> :error
+  else
+    encoded -> {:ok, encoded}
+  end
+  defp encode64(_), do: :error
+
+  @compile {:inline, e: 1, e64: 1}
 
   defp e(0), do: ?0
   defp e(1), do: ?1
@@ -125,6 +142,71 @@ defmodule Ecto.ULID do
   defp e(29), do: ?X
   defp e(30), do: ?Y
   defp e(31), do: ?Z
+
+  defp e64(0), do: ?-
+  defp e64(1), do: ?0
+  defp e64(2), do: ?1
+  defp e64(3), do: ?2
+  defp e64(4), do: ?3
+  defp e64(5), do: ?4
+  defp e64(6), do: ?5
+  defp e64(7), do: ?6
+  defp e64(8), do: ?7
+  defp e64(9), do: ?8
+  defp e64(10), do: ?9
+  defp e64(11), do: ?A
+  defp e64(12), do: ?B
+  defp e64(13), do: ?C
+  defp e64(14), do: ?D
+  defp e64(15), do: ?E
+  defp e64(16), do: ?F
+  defp e64(17), do: ?G
+  defp e64(18), do: ?H
+  defp e64(19), do: ?I
+  defp e64(20), do: ?J
+  defp e64(21), do: ?K
+  defp e64(22), do: ?L
+  defp e64(23), do: ?M
+  defp e64(24), do: ?N
+  defp e64(25), do: ?O
+  defp e64(26), do: ?P
+  defp e64(27), do: ?Q
+  defp e64(28), do: ?R
+  defp e64(29), do: ?S
+  defp e64(30), do: ?T
+  defp e64(31), do: ?U
+  defp e64(32), do: ?V
+  defp e64(33), do: ?W
+  defp e64(34), do: ?X
+  defp e64(35), do: ?Y
+  defp e64(36), do: ?Z
+  defp e64(37), do: ?_
+  defp e64(38), do: ?a
+  defp e64(39), do: ?b
+  defp e64(40), do: ?c
+  defp e64(41), do: ?d
+  defp e64(42), do: ?e
+  defp e64(43), do: ?f
+  defp e64(44), do: ?g
+  defp e64(45), do: ?h
+  defp e64(46), do: ?i
+  defp e64(47), do: ?j
+  defp e64(48), do: ?k
+  defp e64(49), do: ?l
+  defp e64(50), do: ?m
+  defp e64(51), do: ?n
+  defp e64(52), do: ?o
+  defp e64(53), do: ?p
+  defp e64(54), do: ?q
+  defp e64(55), do: ?r
+  defp e64(56), do: ?s
+  defp e64(57), do: ?t
+  defp e64(58), do: ?u
+  defp e64(59), do: ?v
+  defp e64(60), do: ?w
+  defp e64(61), do: ?x
+  defp e64(62), do: ?y
+  defp e64(63), do: ?z
 
   defp decode(<< c1::8,  c2::8,  c3::8,  c4::8,  c5::8,  c6::8,  c7::8,  c8::8,  c9::8, c10::8, c11::8, c12::8, c13::8,
                 c14::8, c15::8, c16::8, c17::8, c18::8, c19::8, c20::8, c21::8, c22::8, c23::8, c24::8, c25::8, c26::8>>) do
