@@ -1,6 +1,6 @@
 # Ecto.ULID
 
-An `Ecto.Type` implementation of [ULID](https://github.com/ulid/spec).
+An `Ecto.ParameterizedType` implementation of [ULID](https://github.com/ulid/spec).
 
 `Ecto.ULID` should be compatible anywhere that `Ecto.UUID` is supported. It has been confirmed to
 work with PostgreSQL and MySQL on Ecto 2.x and 3.x.  Ecto 1.x is *not* supported.
@@ -105,6 +105,20 @@ end
 
 `Ecto.ULID` supports `autogenerate: true` as well as `autogenerate: false` when used as the primary
 key.
+
+`Ecto.ULID` also supports `variant: :b64` as well as `variant: :push` that follows the compact 20-char string encoding standard defined in [Firebase Push Key](https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html). Just like the default Crockford base32 encoding, both variants use a modified base64 alphabet to ensure the IDs will still sort correctly when ordered lexicographically. Do note that the `:push` variant encodes only 120-bits, but is otherwise interoperable with the standard 128-bit binary ULID (by having the 1st-byte of the random component set to 0, we achieve a more efficient base64 encoding that saves 2 characters).
+
+```elixir
+defmodule MyApp.Event do
+  use Ecto.Schema
+
+  @primary_key {:id, Ecto.ULID, autogenerate: false, variant: :b64}
+  @foreign_key_type Ecto.ULID
+  schema "events" do
+    # more columns ...
+  end
+end
+```
 
 ### Application Usage
 
