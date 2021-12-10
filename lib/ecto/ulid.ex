@@ -9,18 +9,27 @@ defmodule Ecto.ULID do
   @behaviour Ecto.ParameterizedType
   # and remove both of these functions
   def embed_as(_, _params), do: :self
-  def equal?(term1, term2, _params), do: dump(term1) == dump(term2)
+  def equal?(term1, term2, _params), do: term1 == term2
 
   @doc """
   The underlying schema type.
   """
-  def type(_params \\ @default_params), do: :uuid
+  def type(_params), do: :uuid
+
+  @doc false
+    def init(opts) do
+    case Keyword.get(opts, :variant, :b32) do
+      v when v in [:b32, :b64, :push] -> %{variant: v}
+      _ -> raise "Ecto.ULID variant must be one of [:b32, :b64, :push]"
+    end
+  end
 
   @doc """
   Casts a string to ULID.
   """
   def cast(value, params \\ @default_params)
-  def cast(<<_::bytes-size(26)>> = value, _params) do
+  def cast(nil, _params), do: {:ok, nil}
+  def cast(<<_::bytes-size(26)>> = value, %{variant: :b32}) do
     # Crockford Base32 encoded string
     if valid?(value) do
       {:ok, value}
@@ -28,7 +37,7 @@ defmodule Ecto.ULID do
       :error
     end
   end
-  def cast(<<_::bytes-size(22)>> = value, _params) do
+  def cast(<<_::bytes-size(22)>> = value, %{variant: :b64}) do
     # Lexicographic Base64 encoded string
     if valid64?(value) do
       {:ok, value}
@@ -36,7 +45,7 @@ defmodule Ecto.ULID do
       :error
     end
   end
-  def cast(<<_::bytes-size(20)>> = value, _params) do
+  def cast(<<_::bytes-size(20)>> = value, %{variant: :push}) do
     # Firebase-Push-Key Base64 encoded string
     if valid64?(value) do
       {:ok, value}
@@ -68,6 +77,7 @@ defmodule Ecto.ULID do
   def dump(_), do: :error
 
   @doc false
+  def dump(nil, _, _), do: {:ok, nil}
   def dump(encoded, _dumper, _params), do: dump(encoded)
 
   @doc """
@@ -91,16 +101,9 @@ defmodule Ecto.ULID do
   def load(_, _variant), do: :error
 
   @doc false
+  def load(nil, _, _), do: {:ok, nil}
   def load(bytes, _loader, %{variant: variant}), do: load(bytes, variant)
   def load(_, _loader, _params), do: :error
-
-  @doc false
-  def init(opts) do
-    case Keyword.get(opts, :variant, :b32) do
-      v when v in [:b32, :b64, :push] -> %{variant: v}
-      _ -> raise "Ecto.ULID variant must be one of [:b32, :b64, :push]"
-    end
-  end
 
   @doc false
   def autogenerate(%{variant: variant} = _params), do: generate(variant)

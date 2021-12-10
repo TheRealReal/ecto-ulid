@@ -147,4 +147,19 @@ defmodule Ecto.ULIDTest do
   test "load/2 returns error when data is too long" do
     assert Ecto.ULID.load(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>) == :error
   end
+
+  defmodule SchemaWithUlidAsPrimaryKey do
+    use Ecto.Schema
+
+    @primary_key {:id, Ecto.ULID,
+                  autogenerate: true, variant: :b64}
+    schema "" do
+    end
+  end
+
+  test "init primary key field" do
+    assert SchemaWithUlidAsPrimaryKey.__schema__(:autogenerate_id) == nil
+    assert SchemaWithUlidAsPrimaryKey.__schema__(:autogenerate) ==
+      [{[:id], {Ecto.ULID, :autogenerate, [%{variant: :b64}]}}]
+  end
 end
