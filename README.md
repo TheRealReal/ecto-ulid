@@ -54,7 +54,7 @@ Install `ecto_ulid` from Hex by adding it to the dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:ecto_ulid, "~> 0.2.0"}
+    {:ecto_ulid, "~> 0.3.0"}
   ]
 end
 ```
