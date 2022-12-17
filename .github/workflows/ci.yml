@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  MIX_ENV: test
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Dependency cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: mix-test-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            mix-test-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+            mix-test-${{ runner.os }}-
+            mix-test-
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "25.1.2"
+          elixir-version: "1.14.2"
+
+      - name: Install dependencies
+        run: |
+          make deps
+          mix deps.compile
+
+      - name: Check retired and unused dependencies
+        run: |
+          mix hex.audit
+          mix deps.unlock --check-unused
+
+      - name: Run tests
+        run: mix test
+
+  # formatter:
+  #   name: Formatter
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Dependency cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           deps
+  #           _build
+  #         key: mix-fmt-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+  #         restore-keys: |
+  #           mix-fmt-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+  #           mix-fmt-${{ runner.os }}-
+  #           mix-fmt-
+
+  #     - name: Setup Elixir
+  #       uses: erlef/setup-beam@v1
+  #       with:
+  #         otp-version: "25.1.2"
+  #         elixir-version: "1.14.2"
+
+  #     - name: Install dependencies
+  #       run: mix deps.get
+
+  #     - name: Run Formatter
+  #       run: mix fmt
+
+  linter:
+    name: Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Dependency cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: mix-lint-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            mix-lint-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+            mix-lint-${{ runner.os }}-
+            mix-lint-
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "25.1.2"
+          elixir-version: "1.14.2"
+
+      - name: Install dependencies
+        run: |
+          mix deps.get
+          mix deps.compile
+
+      - name: Run Linter
+        run: mix credo
